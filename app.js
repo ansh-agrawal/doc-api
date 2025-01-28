@@ -61,6 +61,46 @@ app.delete("/delete_doctor/:id", (req, res) => {
     res.status(200).json({ message: `Doctor with ID ${doctorId} deleted successfully.` });
 });
 
+const appointmentsDb = {}; // Object to store appointments
+let appointmentIdCounter = 1; // Start ID counter for appointments
+app.post("/schedule_appointment", (req, res) => {
+    const { doctorId, patientName, appointmentDate } = req.body;
+
+    if (!doctorId || !patientName || !appointmentDate) {
+        return res.status(400).json({ error: "Doctor ID, patient name, and appointment date are required." });
+    }
+
+    // Check if doctor exists
+    if (!doctorsDb[doctorId]) {
+        return res.status(404).json({ error: "Doctor not found." });
+    }
+
+    const appointment = {
+        id: appointmentIdCounter,
+        doctorId,
+        patientName,
+        appointmentDate,
+    };
+
+    appointmentsDb[appointmentIdCounter] = appointment;
+    appointmentIdCounter++;
+
+    res.status(201).json({ message: "Appointment scheduled successfully!", appointment });
+});
+
+app.get("/appointments/:doctorId", (req, res) => {
+    const doctorId = parseInt(req.params.doctorId);
+
+    // Get appointments for the doctor
+    const doctorAppointments = Object.values(appointmentsDb).filter(appointment => appointment.doctorId === doctorId);
+
+    if (doctorAppointments.length === 0) {
+        return res.status(404).json({ error: "No appointments found for this doctor." });
+    }
+
+    res.status(200).json(doctorAppointments);
+});
+
 // Start the server
 const PORT = 3000;
 app.listen(PORT, () => {
