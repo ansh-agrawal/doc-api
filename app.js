@@ -75,6 +75,15 @@ app.post("/schedule_appointment", (req, res) => {
         return res.status(404).json({ error: "Doctor not found." });
     }
 
+        const existingAppointment = Object.values(appointmentsDb).find(appointment => 
+        appointment.doctorId === doctorId && appointment.appointmentDate === appointmentDate
+    );
+
+    if (existingAppointment) {
+        return res.status(400).json({ error: "Appointment already exists at this time." });
+    }
+
+
     const appointment = {
         id: appointmentIdCounter,
         doctorId,
